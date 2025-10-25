@@ -1,68 +1,15 @@
-export interface User {
-	id: string;
-	email: string;
-	firstName: string;
-	lastName: string;
-	phone: string;
-	address: string;
-	createdAt: string;
-	updatedAt: string;
-}
+// Core model types
+export * from "./models.types";
+export * from "./user.types";
 
-export interface Category {
-	id: string;
-	name: string;
-	createdAt: string;
-}
+// Authentication and auth context
+export * from "./auth.types";
+export * from "./context.types";
 
-export interface Product {
-	id: string;
-	title?: string;
-	description?: string;
-	categories: Category[];
-	purchasePrice?: number;
-	rentalPrice?: number;
-	rentUnit?: "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY";
-	status: "DRAFT" | "PUBLISHED";
-	userId: string;
-	createdAt: string;
-	updatedAt: string;
-	isBought?: boolean;
-	isCurrentlyRented?: boolean;
-}
+// Component prop types
+export * from "./component.types";
 
-export interface AuthPayload {
-	user: User;
-	token: string;
-}
-
-export interface RegisterInput {
-	email: string;
-	password: string;
-	firstName: string;
-	lastName: string;
-	phone: string;
-	address: string;
-}
-
-export interface LoginInput {
-	email: string;
-	password: string;
-}
-
-export interface UpdateProfileInput {
-	firstName?: string;
-	lastName?: string;
-	phone?: string;
-	address?: string;
-}
-
-export interface AuthContextType {
-	user: User | null;
-	token: string | null;
-	isLoading: boolean;
-	isAuthenticated: boolean;
-	login: (email: string, password: string) => Promise<void>;
-	register: (data: RegisterInput) => Promise<void>;
-	logout: () => void;
-}
+// Page-specific types
+export * from "./product.types";
+export * from "./register.types";
+export * from "./transactions.types";

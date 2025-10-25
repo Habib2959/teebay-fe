@@ -1,21 +1,5 @@
 import React from "react";
-
-interface SelectOption {
-	value: string;
-	label: string;
-}
-
-interface SelectProps {
-	label?: string;
-	value: string | string[];
-	onChange: (value: string | string[]) => void;
-	options: SelectOption[];
-	multiple?: boolean;
-	error?: string;
-	disabled?: boolean;
-	size?: number;
-	helper?: string;
-}
+import type { SelectProps } from "../types/component.types";
 
 export const Select: React.FC<SelectProps> = ({
 	label,

@@ -1,10 +1,5 @@
 import React from "react";
-import { FieldError } from "react-hook-form";
-
-interface FormErrorProps {
-	error?: FieldError | { message?: string };
-	className?: string;
-}
+import type { FormErrorProps } from "../types/component.types";
 
 export const FormError: React.FC<FormErrorProps> = ({
 	error,

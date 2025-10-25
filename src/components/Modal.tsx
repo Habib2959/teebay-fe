@@ -1,31 +1,11 @@
 import React from "react";
-
-interface ModalProps {
-	isOpen: boolean;
-	title: string;
-	message?: React.ReactNode;
-	children?: React.ReactNode;
-	onClose: () => void;
-	primaryAction?: {
-		label: string;
-		onClick: () => void;
-		isLoading?: boolean;
-		variant?: "danger" | "success" | "primary";
-	};
-	secondaryAction?: {
-		label: string;
-		onClick: () => void;
-		isLoading?: boolean;
-	};
-	maxWidth?: "sm" | "md" | "lg" | "xl";
-}
+import type { ModalProps } from "../types/component.types";
 
 export const Modal: React.FC<ModalProps> = ({
 	isOpen,
 	title,
 	message,
 	children,
-	onClose,
 	primaryAction,
 	secondaryAction,
 	maxWidth = "sm",

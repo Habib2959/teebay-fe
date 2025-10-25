@@ -1,14 +1,5 @@
 import React from "react";
-
-interface TextAreaProps {
-	label?: string;
-	placeholder?: string;
-	value: string;
-	onChange: (value: string) => void;
-	rows?: number;
-	error?: string;
-	disabled?: boolean;
-}
+import type { TextAreaProps } from "../types/component.types";
 
 export const TextArea: React.FC<TextAreaProps> = ({
 	label,

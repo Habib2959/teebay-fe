@@ -1,14 +1,5 @@
 import React from "react";
-
-interface TextInputProps {
-	label?: string;
-	placeholder?: string;
-	value: string;
-	onChange: (value: string) => void;
-	type?: "text" | "email" | "password" | "number" | "date";
-	error?: string;
-	disabled?: boolean;
-}
+import type { TextInputProps } from "../types/component.types";
 
 export const TextInput: React.FC<TextInputProps> = ({
 	label,

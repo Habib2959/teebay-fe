@@ -3,10 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { RegisterInput } from "../types/index";
-
-interface RegisterFormInput extends RegisterInput {
-	password_confirm?: string;
-}
+import { RegisterFormInput } from "../types/register.types";
 
 export const Register: React.FC = () => {
 	const {

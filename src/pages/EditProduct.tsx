@@ -10,21 +10,8 @@ import { TextArea } from "../components/TextArea";
 import { Select } from "../components/Select";
 import { MultiSelect } from "../components/MultiSelect";
 import { FormError } from "../components/FormError";
-
-interface FormData {
-	title: string;
-	description: string;
-	categoryIds: string[];
-	purchasePrice: string;
-	rentalPrice: string;
-	rentUnit: "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY";
-}
-
-interface Category {
-	id: string;
-	name: string;
-	createdAt: string;
-}
+import { FormData } from "../types/product.types";
+import { Category } from "../types";
 
 export const EditProduct: React.FC = () => {
 	const navigate = useNavigate();

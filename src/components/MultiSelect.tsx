@@ -1,20 +1,6 @@
 import React from "react";
 import ReactSelect, { MultiValue, StylesConfig } from "react-select";
-
-interface OptionType {
-	value: string;
-	label: string;
-}
-
-interface MultiSelectProps {
-	label?: string;
-	placeholder?: string;
-	value: string[];
-	onChange: (value: string[]) => void;
-	options: OptionType[];
-	error?: string;
-	disabled?: boolean;
-}
+import type { OptionType, MultiSelectProps } from "../types/component.types";
 
 const customStyles: StylesConfig<OptionType, true> = {
 	control: (base, state) => ({

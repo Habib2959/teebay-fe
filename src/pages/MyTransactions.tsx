@@ -10,72 +10,13 @@ import {
 	GET_MY_RENTALS,
 	GET_MY_LENDINGS,
 } from "../graphql/queries";
-
-interface BoughtProduct {
-	id: string;
-	product: {
-		id: string;
-		title: string;
-		description: string;
-		categories: { id: string; name: string }[];
-		purchasePrice: number;
-		createdAt: string;
-	};
-	price: number;
-	createdAt: string;
-}
-
-interface SoldProduct {
-	id: string;
-	product: {
-		id: string;
-		title: string;
-		description: string;
-		categories: { id: string; name: string }[];
-		purchasePrice: number;
-		createdAt: string;
-	};
-	price: number;
-	createdAt: string;
-}
-
-interface RentedProduct {
-	id: string;
-	product: {
-		id: string;
-		title: string;
-		description: string;
-		categories: { id: string; name: string }[];
-		rentalPrice: number;
-		rentUnit: string;
-		createdAt: string;
-	};
-	startDate: string;
-	endDate: string;
-	rentalPrice: number;
-	status: string;
-	createdAt: string;
-}
-
-interface LentProduct {
-	id: string;
-	product: {
-		id: string;
-		title: string;
-		description: string;
-		categories: { id: string; name: string }[];
-		rentalPrice: number;
-		rentUnit: string;
-		createdAt: string;
-	};
-	startDate: string;
-	endDate: string;
-	rentalPrice: number;
-	status: string;
-	createdAt: string;
-}
-
-type TabType = "bought" | "sold" | "borrowed" | "lent";
+import {
+	BoughtProduct,
+	SoldProduct,
+	RentedProduct,
+	LentProduct,
+	TabType,
+} from "../types/transactions.types";
 
 export const MyTransactions: React.FC = () => {
 	const navigate = useNavigate();

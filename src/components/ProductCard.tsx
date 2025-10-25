@@ -1,21 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Product } from "../types/index";
+import type { ProductCardProps } from "../types/component.types";
 import { useAuth } from "../hooks/useAuth";
-
-interface Period {
-	startDate: string;
-	endDate: string;
-	status?: string;
-}
-
-interface ProductCardProps {
-	product: Product;
-	onEdit?: (productId: string) => void;
-	onDelete?: (productId: string, productTitle: string) => void;
-	showActions?: boolean;
-	period?: Period;
-}
 
 export const ProductCard: React.FC<ProductCardProps> = ({
 	product,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import { client } from "../apollo/client";
 import { UPDATE_PRODUCT_MUTATION } from "../graphql/mutations";
 import { GET_PRODUCT, GET_CATEGORIES } from "../graphql/queries";
@@ -8,6 +9,7 @@ import { TextInput } from "../components/TextInput";
 import { TextArea } from "../components/TextArea";
 import { Select } from "../components/Select";
 import { MultiSelect } from "../components/MultiSelect";
+import { FormError } from "../components/FormError";
 
 interface FormData {
 	title: string;
@@ -27,17 +29,24 @@ interface Category {
 export const EditProduct: React.FC = () => {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>();
-	const [formData, setFormData] = useState<FormData>({
-		title: "",
-		description: "",
-		categoryIds: [],
-		purchasePrice: "",
-		rentalPrice: "",
-		rentUnit: "DAILY",
+	const {
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors, isSubmitting },
+	} = useForm<FormData>({
+		defaultValues: {
+			title: "",
+			description: "",
+			categoryIds: [],
+			purchasePrice: "",
+			rentalPrice: "",
+			rentUnit: "DAILY",
+		},
+		mode: "onBlur",
 	});
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [categoriesLoading, setCategoriesLoading] = useState(true);
-	const [updateLoading, setUpdateLoading] = useState(false);
 	const [pageLoading, setPageLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +67,7 @@ export const EditProduct: React.FC = () => {
 
 			const product = (productResult.data as any).product;
 			if (product) {
-				setFormData({
+				reset({
 					title: product.title || "",
 					description: product.description || "",
 					categoryIds: product.categories.map((cat: any) => cat.id) || [],
@@ -82,51 +91,42 @@ export const EditProduct: React.FC = () => {
 		}
 	};
 
-	const validateForm = (): boolean => {
-		if (!formData.title.trim()) {
+	const onSubmit = async (data: FormData) => {
+		if (!data.title.trim()) {
 			alert("Please enter a product title");
-			return false;
+			return;
 		}
-		if (formData.categoryIds.length === 0) {
+		if (data.categoryIds.length === 0) {
 			alert("Please select at least one category");
-			return false;
+			return;
 		}
-		if (!formData.description.trim()) {
+		if (!data.description.trim()) {
 			alert("Please enter a product description");
-			return false;
+			return;
 		}
-		if (!formData.purchasePrice) {
+		if (!data.purchasePrice) {
 			alert("Please enter a purchase price");
-			return false;
+			return;
 		}
-		return true;
-	};
-
-	const handleSubmit = async () => {
-		if (!validateForm()) return;
 
 		try {
-			setUpdateLoading(true);
 			const response = await client.mutate({
 				mutation: UPDATE_PRODUCT_MUTATION,
 				variables: {
 					input: {
 						id,
-						title: formData.title,
-						description: formData.description,
-						categoryIds: formData.categoryIds,
-						purchasePrice: parseFloat(formData.purchasePrice) || null,
-						rentalPrice: formData.rentalPrice
-							? parseFloat(formData.rentalPrice)
-							: null,
-						rentUnit: formData.rentalPrice ? formData.rentUnit : null,
+						title: data.title,
+						description: data.description,
+						categoryIds: data.categoryIds,
+						purchasePrice: parseFloat(data.purchasePrice) || null,
+						rentalPrice: data.rentalPrice ? parseFloat(data.rentalPrice) : null,
+						rentUnit: data.rentalPrice ? data.rentUnit : null,
 					},
 				},
 			});
 
 			if ((response.data as any)?.updateProduct?.success) {
 				alert("Product updated successfully!");
-				// Refetch products cache to show updated product
 				await client.refetchQueries({
 					include: ["GetAllProducts", "GetProduct"],
 				});
@@ -137,8 +137,6 @@ export const EditProduct: React.FC = () => {
 			alert(
 				error instanceof Error ? error.message : "Failed to update product"
 			);
-		} finally {
-			setUpdateLoading(false);
 		}
 	};
 
@@ -186,133 +184,166 @@ export const EditProduct: React.FC = () => {
 
 				{/* Form Container */}
 				<div className="bg-white rounded-lg shadow-md p-8">
-					{/* Title */}
-					<div className="mb-6">
-						<label className="block text-gray-700 font-semibold mb-2">
-							Title
-						</label>
-						<TextInput
-							placeholder="Enter product title"
-							value={formData.title}
-							onChange={(value) => setFormData({ ...formData, title: value })}
-						/>
-					</div>
-
-					{/* Categories */}
-					<div className="mb-6">
-						<label className="block text-gray-700 font-semibold mb-2">
-							Categories
-						</label>
-						{categoriesLoading ? (
-							<p className="text-gray-600">Loading categories...</p>
-						) : (
-							<MultiSelect
-								label=""
-								placeholder="Select one or more categories..."
-								value={formData.categoryIds}
-								onChange={(value) =>
-									setFormData({
-										...formData,
-										categoryIds: value,
-									})
-								}
-								options={categories.map((cat) => ({
-									value: cat.id,
-									label: cat.name,
-								}))}
-							/>
-						)}
-					</div>
-
-					{/* Description */}
-					<div className="mb-6">
-						<label className="block text-gray-700 font-semibold mb-2">
-							Description
-						</label>
-						<TextArea
-							placeholder="Enter product description"
-							value={formData.description}
-							onChange={(value) =>
-								setFormData({ ...formData, description: value })
-							}
-							rows={6}
-						/>
-					</div>
-
-					{/* Price and Rent */}
-					<div className="mb-6 grid grid-cols-2 gap-6">
-						{/* Purchase Price */}
-						<div>
+					<form onSubmit={handleSubmit(onSubmit)}>
+						{/* Title */}
+						<div className="mb-6">
 							<label className="block text-gray-700 font-semibold mb-2">
-								Price
+								Title
 							</label>
-							<TextInput
-								type="number"
-								placeholder="0.00"
-								value={formData.purchasePrice}
-								onChange={(value) =>
-									setFormData({
-										...formData,
-										purchasePrice: value,
-									})
-								}
+							<Controller
+								name="title"
+								control={control}
+								rules={{ required: "Title is required" }}
+								render={({ field }) => (
+									<>
+										<TextInput
+											placeholder="Enter product title"
+											value={field.value}
+											onChange={field.onChange}
+										/>
+										<FormError error={errors.title} />
+									</>
+								)}
 							/>
 						</div>
 
-						{/* Rental Price */}
-						<div>
+						{/* Categories */}
+						<div className="mb-6">
 							<label className="block text-gray-700 font-semibold mb-2">
-								Rent
+								Categories
 							</label>
-							<div className="flex gap-3">
-								<div className="flex-1">
-									<TextInput
-										type="number"
-										placeholder="0.00"
-										value={formData.rentalPrice}
-										onChange={(value) =>
-											setFormData({
-												...formData,
-												rentalPrice: value,
-											})
-										}
+							{categoriesLoading ? (
+								<p className="text-gray-600">Loading categories...</p>
+							) : (
+								<>
+									<Controller
+										name="categoryIds"
+										control={control}
+										rules={{
+											required: "Please select at least one category",
+										}}
+										render={({ field }) => (
+											<MultiSelect
+												label=""
+												placeholder="Select one or more categories..."
+												value={field.value}
+												onChange={field.onChange}
+												options={categories.map((cat) => ({
+													value: cat.id,
+													label: cat.name,
+												}))}
+											/>
+										)}
 									/>
-								</div>
-								<div className="w-32">
-									<Select
-										value={formData.rentUnit}
-										onChange={(value) =>
-											setFormData({
-												...formData,
-												rentUnit: value as
-													| "HOURLY"
-													| "DAILY"
-													| "WEEKLY"
-													| "MONTHLY",
-											})
-										}
-										options={[
-											{ value: "HOURLY", label: "per hr" },
-											{ value: "DAILY", label: "per day" },
-											{ value: "WEEKLY", label: "per week" },
-											{ value: "MONTHLY", label: "per month" },
-										]}
-									/>
+									<FormError error={errors.categoryIds} />
+								</>
+							)}
+						</div>
+
+						{/* Description */}
+						<div className="mb-6">
+							<label className="block text-gray-700 font-semibold mb-2">
+								Description
+							</label>
+							<Controller
+								name="description"
+								control={control}
+								rules={{ required: "Description is required" }}
+								render={({ field }) => (
+									<>
+										<TextArea
+											placeholder="Enter product description"
+											value={field.value}
+											onChange={field.onChange}
+											rows={6}
+										/>
+										<FormError error={errors.description} />
+									</>
+								)}
+							/>
+						</div>
+
+						{/* Price and Rent */}
+						<div className="mb-6 grid grid-cols-2 gap-6">
+							{/* Purchase Price */}
+							<div>
+								<label className="block text-gray-700 font-semibold mb-2">
+									Price
+								</label>
+								<Controller
+									name="purchasePrice"
+									control={control}
+									rules={{ required: "Price is required" }}
+									render={({ field }) => (
+										<>
+											<TextInput
+												type="number"
+												placeholder="0.00"
+												value={field.value}
+												onChange={field.onChange}
+											/>
+											<FormError error={errors.purchasePrice} />
+										</>
+									)}
+								/>
+							</div>
+
+							{/* Rental Price */}
+							<div>
+								<label className="block text-gray-700 font-semibold mb-2">
+									Rent
+								</label>
+								<div className="flex gap-3">
+									<div className="flex-1">
+										<Controller
+											name="rentalPrice"
+											control={control}
+											render={({ field }) => (
+												<>
+													<TextInput
+														type="number"
+														placeholder="0.00"
+														value={field.value}
+														onChange={field.onChange}
+													/>
+													<FormError error={errors.rentalPrice} />
+												</>
+											)}
+										/>
+									</div>
+									<div className="w-32">
+										<Controller
+											name="rentUnit"
+											control={control}
+											render={({ field }) => (
+												<Select
+													value={field.value}
+													onChange={field.onChange}
+													options={[
+														{ value: "HOURLY", label: "per hr" },
+														{ value: "DAILY", label: "per day" },
+														{ value: "WEEKLY", label: "per week" },
+														{ value: "MONTHLY", label: "per month" },
+													]}
+												/>
+											)}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
 
-					{/* Edit Product Button */}
-					<div className="flex justify-end">
-						<button
-							onClick={handleSubmit}
-							disabled={updateLoading}
-							className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							{updateLoading ? "Updating..." : "Edit Product"}
-						</button>
-					</div>
+						{/* Edit Product Button */}
+						<div className="flex justify-end">
+							<button
+								type="submit"
+								disabled={isSubmitting}
+								className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{isSubmitting ? "Updating..." : "Edit Product"}
+							</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>

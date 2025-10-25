@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import { Navbar } from "../components/Navbar";
 import { Modal } from "../components/Modal";
+import { FormError } from "../components/FormError";
 import { GET_PRODUCT } from "../graphql/queries";
-import { BUY_PRODUCT_MUTATION } from "../graphql/mutations";
+import {
+	BUY_PRODUCT_MUTATION,
+	RENT_PRODUCT_MUTATION,
+} from "../graphql/mutations";
 import { client } from "../apollo/client";
 import { Product } from "../types/index";
 
 export const ProductDetail: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const {
+		control: rentControl,
+		handleSubmit: handleSubmitRent,
+		formState: { errors: rentErrors },
+	} = useForm({
+		defaultValues: {
+			startDate: "",
+			endDate: "",
+		},
+	});
 	const [product, setProduct] = useState<Product | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [buyModal, setBuyModal] = useState({
+		isOpen: false,
+		isProcessing: false,
+	});
+	const [rentModal, setRentModal] = useState({
 		isOpen: false,
 		isProcessing: false,
 	});
@@ -77,7 +96,6 @@ export const ProductDetail: React.FC = () => {
 					} for $${buyTransaction.price.toFixed(2)}`
 				);
 				handleCloseBuyModal();
-				// Optionally navigate back to products list after successful purchase
 				setTimeout(() => navigate("/"), 1500);
 			} else {
 				alert("Failed to complete purchase");
@@ -94,8 +112,72 @@ export const ProductDetail: React.FC = () => {
 
 	const handleRentClick = () => {
 		if (product) {
-			// TODO: Implement rent functionality
-			alert("Rent functionality coming soon");
+			setRentModal({
+				isOpen: true,
+				isProcessing: false,
+			});
+		}
+	};
+
+	const handleCloseRentModal = () => {
+		setRentModal({
+			isOpen: false,
+			isProcessing: false,
+		});
+	};
+
+	const handleConfirmRent = async (data: {
+		startDate: string;
+		endDate: string;
+	}) => {
+		if (!product || !data.startDate || !data.endDate) {
+			alert("Please select both start and end dates");
+			return;
+		}
+
+		const start = new Date(data.startDate);
+		const end = new Date(data.endDate);
+
+		if (start >= end) {
+			alert("End date must be after start date");
+			return;
+		}
+
+		try {
+			setRentModal((prev) => ({ ...prev, isProcessing: true }));
+
+			const response = await client.mutate({
+				mutation: RENT_PRODUCT_MUTATION,
+				variables: {
+					input: {
+						productId: product.id,
+						startDate: data.startDate,
+						endDate: data.endDate,
+					},
+				},
+			});
+
+			if ((response.data as any)?.rentProduct?.id) {
+				const rentTransaction = (response.data as any).rentProduct;
+				alert(
+					`Successfully rented ${
+						rentTransaction.product.title
+					} for $${rentTransaction.rentalPrice.toFixed(2)} from ${
+						data.startDate
+					} to ${data.endDate}`
+				);
+				handleCloseRentModal();
+				setTimeout(() => navigate("/"), 1500);
+			} else {
+				alert("Failed to complete rental");
+			}
+		} catch (err) {
+			console.error("Error processing rental:", err);
+			const errorMsg =
+				err instanceof Error ? err.message : "Failed to process rental";
+			alert(errorMsg);
+		} finally {
+			setRentModal((prev) => ({ ...prev, isProcessing: false }));
 		}
 	};
 
@@ -236,6 +318,75 @@ export const ProductDetail: React.FC = () => {
 				}}
 				maxWidth="sm"
 			/>
+
+			{/* Rent Modal with Date Picker */}
+			<Modal
+				isOpen={rentModal.isOpen}
+				title="Rent Product"
+				onClose={handleCloseRentModal}
+				primaryAction={{
+					label: "Confirm Rent",
+					onClick: handleSubmitRent(handleConfirmRent),
+					isLoading: rentModal.isProcessing,
+					variant: "primary",
+				}}
+				secondaryAction={{
+					label: "Cancel",
+					onClick: handleCloseRentModal,
+				}}
+				maxWidth="sm"
+			>
+				<div className="space-y-4">
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Start Date
+						</label>
+						<Controller
+							name="startDate"
+							control={rentControl}
+							rules={{ required: "Start date is required" }}
+							render={({ field }) => (
+								<input
+									{...field}
+									type="date"
+									className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm font-medium bg-white text-gray-900 cursor-pointer focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+									style={{ colorScheme: "light" }}
+								/>
+							)}
+						/>
+						<FormError error={rentErrors.startDate} />
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							End Date
+						</label>
+						<Controller
+							name="endDate"
+							control={rentControl}
+							rules={{ required: "End date is required" }}
+							render={({ field }) => (
+								<input
+									{...field}
+									type="date"
+									className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm font-medium bg-white text-gray-900 cursor-pointer focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+									style={{ colorScheme: "light" }}
+								/>
+							)}
+						/>
+						<FormError error={rentErrors.endDate} />
+					</div>
+
+					<div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+						<p>
+							Rental Price:{" "}
+							<span className="font-semibold">
+								{formatRentalPrice(product?.rentalPrice, product?.rentUnit)}
+							</span>
+						</p>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 };

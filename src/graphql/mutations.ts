@@ -130,3 +130,27 @@ export const BUY_PRODUCT_MUTATION = gql`
 		}
 	}
 `;
+
+export const RENT_PRODUCT_MUTATION = gql`
+	mutation RentProduct($input: RentProductInput!) {
+		rentProduct(input: $input) {
+			id
+			productId
+			product {
+				id
+				title
+				description
+				rentalPrice
+				rentUnit
+			}
+			renterUserId
+			ownerUserId
+			startDate
+			endDate
+			rentalPrice
+			status
+			createdAt
+			updatedAt
+		}
+	}
+`;

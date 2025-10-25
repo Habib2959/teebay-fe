@@ -109,3 +109,24 @@ export const DELETE_PRODUCT_MUTATION = gql`
 		}
 	}
 `;
+
+export const BUY_PRODUCT_MUTATION = gql`
+	mutation BuyProduct($input: BuyProductInput!) {
+		buyProduct(input: $input) {
+			id
+			productId
+			product {
+				id
+				title
+				description
+				purchasePrice
+			}
+			buyerId
+			sellerId
+			price
+			status
+			createdAt
+			updatedAt
+		}
+	}
+`;

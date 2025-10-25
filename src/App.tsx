@@ -13,6 +13,7 @@ import { Home } from "./pages/Home";
 import { Products } from "./pages/Products";
 import { AddProduct } from "./pages/AddProduct";
 import { EditProduct } from "./pages/EditProduct";
+import { ProductDetail } from "./pages/ProductDetail";
 import { client } from "./apollo/client";
 
 function App() {
@@ -44,6 +45,14 @@ function App() {
 							element={
 								<ProtectedRoute>
 									<EditProduct />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/products/:id"
+							element={
+								<ProtectedRoute>
+									<ProductDetail />
 								</ProtectedRoute>
 							}
 						/>

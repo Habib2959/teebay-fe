@@ -1,0 +1,112 @@
+import { gql } from "@apollo/client";
+
+export const GET_ME = gql`
+	query GetMe {
+		me {
+			id
+			email
+			firstName
+			lastName
+			phone
+			address
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const GET_USER = gql`
+	query GetUser($id: ID!) {
+		user(id: $id) {
+			id
+			email
+			firstName
+			lastName
+			phone
+			address
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const GET_ALL_PRODUCTS = gql`
+	query GetAllProducts($limit: Int, $offset: Int, $status: ProductStatus) {
+		allProducts(limit: $limit, offset: $offset, status: $status) {
+			success
+			products {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				purchasePrice
+				rentalPrice
+				rentUnit
+				status
+				userId
+				createdAt
+				updatedAt
+			}
+			total
+		}
+	}
+`;
+
+export const GET_USER_PRODUCTS = gql`
+	query GetUserProducts($userId: String!) {
+		getUserProducts(userId: $userId) {
+			success
+			products {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				purchasePrice
+				rentalPrice
+				rentUnit
+				status
+				userId
+				createdAt
+				updatedAt
+			}
+			total
+		}
+	}
+`;
+
+export const GET_PRODUCT = gql`
+	query GetProduct($id: String!) {
+		product(id: $id) {
+			id
+			title
+			description
+			categories {
+				id
+				name
+			}
+			purchasePrice
+			rentalPrice
+			rentUnit
+			status
+			userId
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
+export const GET_CATEGORIES = gql`
+	query GetCategories {
+		categories {
+			id
+			name
+			createdAt
+		}
+	}
+`;

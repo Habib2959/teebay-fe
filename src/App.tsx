@@ -14,6 +14,7 @@ import { Products } from "./pages/Products";
 import { AddProduct } from "./pages/AddProduct";
 import { EditProduct } from "./pages/EditProduct";
 import { ProductDetail } from "./pages/ProductDetail";
+import { MyTransactions } from "./pages/MyTransactions";
 import { client } from "./apollo/client";
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
 							element={
 								<ProtectedRoute>
 									<ProductDetail />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/my-transactions"
+							element={
+								<ProtectedRoute>
+									<MyTransactions />
 								</ProtectedRoute>
 							}
 						/>

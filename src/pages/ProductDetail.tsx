@@ -19,6 +19,7 @@ export const ProductDetail: React.FC = () => {
 		control: rentControl,
 		handleSubmit: handleSubmitRent,
 		formState: { errors: rentErrors },
+		watch: watchRent,
 	} = useForm({
 		defaultValues: {
 			startDate: "",
@@ -192,6 +193,49 @@ export const ProductDetail: React.FC = () => {
 		return `$${price} ${unitLabel}`;
 	};
 
+	const calculateTotalRentalPrice = (
+		startDate: string,
+		endDate: string,
+		rentalPrice?: number,
+		rentUnit?: string
+	) => {
+		if (!startDate || !endDate || !rentalPrice || !rentUnit) return null;
+
+		const start = new Date(startDate);
+		const end = new Date(endDate);
+
+		if (start >= end) return null;
+
+		let days = 0;
+		switch (rentUnit.toUpperCase()) {
+			case "HOURLY":
+				days = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+				break;
+			case "DAILY":
+				days = Math.ceil(
+					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+				);
+				break;
+			case "WEEKLY":
+				days = Math.ceil(
+					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 7)
+				);
+				break;
+			case "MONTHLY":
+				days = Math.ceil(
+					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)
+				);
+				break;
+			default:
+				days = Math.ceil(
+					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+				);
+		}
+
+		const total = rentalPrice * days;
+		return total;
+	};
+
 	const formatDate = (date: string) => {
 		return new Date(date).toLocaleDateString("en-US", {
 			year: "numeric",
@@ -222,20 +266,39 @@ export const ProductDetail: React.FC = () => {
 					</div>
 				) : product ? (
 					<div className="bg-white rounded shadow-lg">
-						{/* Header Tab */}
-						<div className="bg-gray-400 px-6 py-3">
-							<h2 className="text-gray-700 font-semibold">
-								Buy/Rent product {product.title}
-							</h2>
-						</div>
-
 						{/* Content */}
 						<div className="p-8">
 							{/* Product Title */}
 							<h1 className="text-4xl font-bold text-gray-800 mb-4">
 								{product.title}
 							</h1>
-
+							{/* Status Badges */}
+							{(product.isBought || product.isCurrentlyRented) && (
+								<div className="mb-6 flex gap-3">
+									{product.isBought && (
+										<div className="px-4 py-2 bg-red-100 border border-red-300 rounded-lg">
+											<p className="text-red-800 text-sm font-semibold">
+												🔴 Already Purchased
+											</p>
+											<p className="text-red-700 text-xs">
+												This product has been bought and is no longer available
+												for purchase.
+											</p>
+										</div>
+									)}
+									{product.isCurrentlyRented && (
+										<div className="px-4 py-2 bg-orange-100 border border-orange-300 rounded-lg">
+											<p className="text-orange-800 text-sm font-semibold">
+												🟠 Currently Being Rented
+											</p>
+											<p className="text-orange-700 text-xs">
+												This product is currently rented and unavailable for new
+												rentals during this period.
+											</p>
+										</div>
+									)}
+								</div>
+							)}
 							{/* Categories */}
 							<div className="mb-4">
 								<p className="text-gray-600">
@@ -245,46 +308,66 @@ export const ProductDetail: React.FC = () => {
 									</span>
 								</p>
 							</div>
-
 							{/* Price */}
-							<div className="mb-6">
-								<p className="text-gray-600">
-									Price:{" "}
-									<span className="font-medium text-lg">
-										{formatPrice(product.purchasePrice)}
-									</span>
-								</p>
-								{product.rentalPrice && (
+							<div className="mb-6 space-y-3">
+								<div className="flex items-center justify-between">
 									<p className="text-gray-600">
-										Rental Price:{" "}
-										<span className="font-medium">
-											{formatRentalPrice(product.rentalPrice, product.rentUnit)}
+										Price:{" "}
+										<span className="font-medium text-lg">
+											{formatPrice(product.purchasePrice)}
 										</span>
 									</p>
+								</div>
+								{product.rentalPrice && (
+									<div className="flex items-center justify-between">
+										<p className="text-gray-600">
+											Rental Price:{" "}
+											<span className="font-medium">
+												{formatRentalPrice(
+													product.rentalPrice,
+													product.rentUnit
+												)}
+											</span>
+										</p>
+									</div>
 								)}
-							</div>
-
+							</div>{" "}
 							{/* Description */}
 							<div className="text-gray-700 mb-12 leading-relaxed">
 								{product.description}
 							</div>
-
 							{/* Action Buttons */}
 							<div className="flex gap-4 justify-end pt-8">
 								{product.rentalPrice && (
 									<button
 										onClick={handleRentClick}
-										className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition-colors"
+										disabled={product.isCurrentlyRented}
+										className={`px-8 py-3 font-semibold rounded transition-colors ${
+											product.isCurrentlyRented
+												? "bg-gray-400 text-gray-600 cursor-not-allowed"
+												: "bg-indigo-600 text-white hover:bg-indigo-700"
+										}`}
 									>
-										Rent
+										{product.isCurrentlyRented
+											? "Currently Being Rented"
+											: "Rent"}
 									</button>
 								)}
 								{product.purchasePrice && (
 									<button
 										onClick={handleBuyClick}
-										className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition-colors"
+										disabled={product.isBought || product.isCurrentlyRented}
+										className={`px-8 py-3 font-semibold rounded transition-colors ${
+											product.isBought || product.isCurrentlyRented
+												? "bg-gray-400 text-gray-600 cursor-not-allowed"
+												: "bg-indigo-600 text-white hover:bg-indigo-700"
+										}`}
 									>
-										Buy
+										{product.isBought
+											? "Already Purchased"
+											: product.isCurrentlyRented
+											? "Currently Being Rented"
+											: "Buy"}
 									</button>
 								)}
 							</div>
@@ -377,11 +460,25 @@ export const ProductDetail: React.FC = () => {
 						<FormError error={rentErrors.endDate} />
 					</div>
 
-					<div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+					<div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-2">
 						<p>
 							Rental Price:{" "}
 							<span className="font-semibold">
 								{formatRentalPrice(product?.rentalPrice, product?.rentUnit)}
+							</span>
+						</p>
+						<p>
+							Total Rental Price:{" "}
+							<span className="font-semibold">
+								{(() => {
+									const total = calculateTotalRentalPrice(
+										watchRent("startDate"),
+										watchRent("endDate"),
+										product?.rentalPrice,
+										product?.rentUnit
+									);
+									return total ? formatPrice(total) : "-";
+								})()}
 							</span>
 						</p>
 					</div>

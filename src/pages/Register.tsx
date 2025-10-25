@@ -20,10 +20,12 @@ export const Register: React.FC = () => {
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const password = watch("password");
 
-	const onSubmit = async (data: RegisterInput) => {
+	const onSubmit = async (data: RegisterFormInput) => {
 		try {
 			setSubmitError(null);
-			await registerUser(data);
+			// Remove password_confirm before sending to backend
+			const { password_confirm, ...registerData } = data;
+			await registerUser(registerData as RegisterInput);
 			navigate("/");
 		} catch (error) {
 			setSubmitError(

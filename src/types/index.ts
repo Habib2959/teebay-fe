@@ -27,6 +27,8 @@ export interface Product {
 	userId: string;
 	createdAt: string;
 	updatedAt: string;
+	isBought?: boolean;
+	isCurrentlyRented?: boolean;
 }
 
 export interface AuthPayload {

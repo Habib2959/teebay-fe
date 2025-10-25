@@ -49,6 +49,8 @@ export const GET_ALL_PRODUCTS = gql`
 				userId
 				createdAt
 				updatedAt
+				isBought
+				isCurrentlyRented
 			}
 			total
 		}
@@ -97,6 +99,8 @@ export const GET_PRODUCT = gql`
 			userId
 			createdAt
 			updatedAt
+			isBought
+			isCurrentlyRented
 		}
 	}
 `;

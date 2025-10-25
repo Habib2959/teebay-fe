@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
+import { ProductCard } from "../components/ProductCard";
 import { useAuth } from "../hooks/useAuth";
 import { client } from "../apollo/client";
-import { GET_ME } from "../graphql/queries";
+import {
+	GET_MY_BUYS,
+	GET_MY_SALES,
+	GET_MY_RENTALS,
+	GET_MY_LENDINGS,
+} from "../graphql/queries";
 
 interface BoughtProduct {
 	id: string;
@@ -95,37 +101,34 @@ export const MyTransactions: React.FC = () => {
 			setIsLoading(true);
 			setError("");
 
-			// TODO: Implement GraphQL queries to fetch transaction data
-			// For now, we'll set empty arrays as placeholder
-			setBoughtProducts([]);
-			setSoldProducts([]);
-			setRentedProducts([]);
-			setLentProducts([]);
+			const [buysResult, salesResult, rentalsResult, lendingsResult] =
+				await Promise.all([
+					client.query({
+						query: GET_MY_BUYS,
+						variables: { status: null },
+					}),
+					client.query({
+						query: GET_MY_SALES,
+					}),
+					client.query({
+						query: GET_MY_RENTALS,
+						variables: { status: null },
+					}),
+					client.query({
+						query: GET_MY_LENDINGS,
+					}),
+				]);
+
+			setBoughtProducts((buysResult.data as any).myBuys || []);
+			setSoldProducts((salesResult.data as any).mySales || []);
+			setRentedProducts((rentalsResult.data as any).myRentals || []);
+			setLentProducts((lendingsResult.data as any).myLendings || []);
 		} catch (err) {
 			setError("Failed to load transactions. Please try again.");
 			console.error(err);
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const formatPrice = (price?: number) => {
-		if (!price) return "-";
-		return `$${price.toFixed(2)}`;
-	};
-
-	const formatDate = (date: string) => {
-		return new Date(date).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-		});
-	};
-
-	const formatRentalPrice = (price?: number, unit?: string) => {
-		if (!price || !unit) return "-";
-		const unitLabel = unit.toLowerCase();
-		return `$${price} per ${unitLabel}`;
 	};
 
 	const renderEmptyState = (tabName: string) => (
@@ -141,81 +144,25 @@ export const MyTransactions: React.FC = () => {
 		if (type === "buy" || type === "sell") {
 			const product = item as BoughtProduct | SoldProduct;
 			return (
-				<div key={item.id} className="border border-gray-300 rounded p-4 mb-4">
-					<h3 className="text-lg font-semibold text-gray-800">
-						{product.product.title}
-					</h3>
-					<p className="text-sm text-gray-600 mt-1">
-						Categories:{" "}
-						<span className="font-medium">
-							{product.product.categories.map((c) => c.name).join(", ") || "-"}
-						</span>
-					</p>
-					<p className="text-sm text-gray-600 mt-1">
-						Price:{" "}
-						<span className="font-medium">{formatPrice(product.price)}</span>
-					</p>
-					<p className="text-gray-700 text-sm mt-3 line-clamp-2">
-						{product.product.description}
-					</p>
-					<button
-						onClick={() => navigate(`/product/${product.product.id}`)}
-						className="mt-3 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-					>
-						More Details →
-					</button>
-				</div>
+				<ProductCard
+					key={item.id}
+					product={product.product as any}
+					showActions={false}
+				/>
 			);
 		} else {
 			const rental = item as RentedProduct | LentProduct;
 			return (
-				<div key={item.id} className="border border-gray-300 rounded p-4 mb-4">
-					<h3 className="text-lg font-semibold text-gray-800">
-						{rental.product.title}
-					</h3>
-					<p className="text-sm text-gray-600 mt-1">
-						Categories:{" "}
-						<span className="font-medium">
-							{rental.product.categories.map((c) => c.name).join(", ") || "-"}
-						</span>
-					</p>
-					<p className="text-sm text-gray-600 mt-1">
-						Rental Price:{" "}
-						<span className="font-medium">
-							{formatRentalPrice(
-								rental.product.rentalPrice,
-								rental.product.rentUnit
-							)}
-						</span>
-					</p>
-					<p className="text-sm text-gray-600 mt-1">
-						Period: {formatDate(rental.startDate)} -{" "}
-						{formatDate(rental.endDate)}
-					</p>
-					<p className="text-sm text-gray-600 mt-1">
-						Status:{" "}
-						<span
-							className={`font-medium ${
-								rental.status === "ACTIVE"
-									? "text-orange-600"
-									: rental.status === "COMPLETED"
-									? "text-green-600"
-									: "text-gray-600"
-							}`}
-						>
-							{rental.status}
-						</span>
-					</p>
-					<p className="text-gray-700 text-sm mt-3 line-clamp-2">
-						{rental.product.description}
-					</p>
-					<button
-						onClick={() => navigate(`/product/${rental.product.id}`)}
-						className="mt-3 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-					>
-						More Details →
-					</button>
-				</div>
+				<ProductCard
+					key={item.id}
+					product={rental.product as any}
+					showActions={false}
+					period={{
+						startDate: rental.startDate,
+						endDate: rental.endDate,
+						status: rental.status,
+					}}
+				/>
 			);
 		}
 	};

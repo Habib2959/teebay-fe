@@ -114,3 +114,97 @@ export const GET_CATEGORIES = gql`
 		}
 	}
 `;
+
+export const GET_MY_BUYS = gql`
+	query GetMyBuys($status: BuyStatus) {
+		myBuys(status: $status) {
+			id
+			product {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				purchasePrice
+				createdAt
+			}
+			price
+			status
+			createdAt
+		}
+	}
+`;
+
+export const GET_MY_SALES = gql`
+	query GetMySales {
+		mySales {
+			id
+			product {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				purchasePrice
+				createdAt
+			}
+			price
+			status
+			createdAt
+		}
+	}
+`;
+
+export const GET_MY_RENTALS = gql`
+	query GetMyRentals($status: RentStatus) {
+		myRentals(status: $status) {
+			id
+			product {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				rentalPrice
+				rentUnit
+				createdAt
+			}
+			startDate
+			endDate
+			rentalPrice
+			status
+			createdAt
+		}
+	}
+`;
+
+export const GET_MY_LENDINGS = gql`
+	query GetMyLendings {
+		myLendings {
+			id
+			product {
+				id
+				title
+				description
+				categories {
+					id
+					name
+				}
+				rentalPrice
+				rentUnit
+				createdAt
+			}
+			startDate
+			endDate
+			rentalPrice
+			status
+			createdAt
+		}
+	}
+`;
